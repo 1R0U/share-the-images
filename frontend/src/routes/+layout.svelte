@@ -9,3 +9,7 @@
 </svelte:head>
 
 {@render children()}
+
+<style>
+	@import 'open-props/style';
+</style>
