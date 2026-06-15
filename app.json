@@ -1,0 +1,74 @@
+{
+  "expo": {
+    "name": "share-the-images",
+    "slug": "share-the-images",
+    "scheme": "sharetheimages",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.sharetheimages.app"
+    },
+    "android": {
+      "package": "com.sharetheimages.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "カメラで写真・動画を撮影します"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "フォトライブラリから画像を選択します"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "写真へのアクセスを許可してください",
+          "savePhotosPermission": "写真を保存します",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "694e6d1b-01d3-4854-9173-8a0356ef9c69"
+      }
+    }
+  }
+}
