@@ -2,7 +2,7 @@
 
 大切な人と、大切な瞬間を共有するクローズドな画像共有アプリ。
 
-**[ロードマップ（issue 一覧）](document/roadmap.html)**
+**[ロードマップ（issue 一覧）](https://1r0u.github.io/share-the-images/document/roadmap.html)**
 
 ## 技術スタック
 
