@@ -18,3 +18,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
 });
+
+/** 開発・デバッグ用。Supabase プロジェクトに実際に到達できるか確認する。 */
+export async function checkConnection(): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase.from('profiles').select('id').limit(0);
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
