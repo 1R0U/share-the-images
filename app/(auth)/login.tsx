@@ -21,24 +21,8 @@ export default function LoginScreen() {
 
   const handleOAuthResult = async (result: WebBrowser.WebBrowserAuthSessionResult) => {
     if (result.type !== 'success') return;
-
-    const fragment = result.url.includes('#')
-      ? result.url.split('#')[1]
-      : result.url.split('?')[1] ?? '';
-    const params = new URLSearchParams(fragment);
-
-    const error = params.get('error');
-    if (error) throw new Error(decodeURIComponent(error));
-
-    const access_token = params.get('access_token');
-    const refresh_token = params.get('refresh_token');
-    if (access_token && refresh_token) {
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token,
-        refresh_token,
-      });
-      if (sessionError) throw sessionError;
-    }
+    const { error } = await supabase.auth.exchangeCodeForSession(result.url);
+    if (error) throw error;
   };
 
   const signInWithGoogle = async () => {
@@ -64,13 +48,13 @@ export default function LoginScreen() {
   const signInWithLine = async () => {
     try {
       setLoading('line');
-      const appRedirect = 'sharetheimages://auth/callback';
+      const redirectTo = Linking.createURL('auth/callback');
 
       // Get LINE OAuth URL from our Edge Function
       const { data, error } = await supabase.functions.invoke('line-auth');
       if (error || !data?.url) throw error ?? new Error('LINE URL not returned');
 
-      const result = await WebBrowser.openAuthSessionAsync(data.url, appRedirect);
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
       await handleOAuthResult(result);
     } catch (e: any) {
       Alert.alert('ログインエラー', e?.message ?? 'LINEログインに失敗しました');
