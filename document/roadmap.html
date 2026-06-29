@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Share the Images — ロードマップ</title>
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a24;
+    --border: #2a2a38;
+    --text: #e2e2f0;
+    --muted: #7070a0;
+    --phase1: #7C6EF5;
+    --phase2: #F59E0B;
+    --phase3: #10B981;
+    --phase4: #EC4899;
+    --phase5: #64748B;
+    --stretch: #334155;
+    --auth: #A855F7;
+    --rooms: #3B82F6;
+    --timeline: #06B6D4;
+    --upload: #F97316;
+    --ai: #84CC16;
+    --search: #EAB308;
+    --albums: #14B8A6;
+    --reactions: #F43F5E;
+    --closed-bg: #1e2e1e;
+    --closed-border: #2d4a2d;
+    --open-bg: #1a1a24;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 32px 40px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: #fff;
+  }
+
+  header p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .content {
+    padding: 32px 40px;
+    max-width: 1200px;
+  }
+
+  .phase {
+    margin-bottom: 40px;
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .phase-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    opacity: 0.9;
+  }
+
+  .phase-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .phase-progress {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .progress-bar {
+    width: 80px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+
+  .chevron {
+    color: var(--muted);
+    font-size: 12px;
+    transition: transform 0.2s;
+  }
+
+  .phase.collapsed .chevron { transform: rotate(-90deg); }
+
+  .phase-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+  }
+
+  .phase.collapsed .phase-body { display: none; }
+
+  .epic {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .epic-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .epic-header:hover { background: rgba(255,255,255,0.03); }
+
+  .epic-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-auth      { background: var(--auth); }
+  .dot-rooms     { background: var(--rooms); }
+  .dot-timeline  { background: var(--timeline); }
+  .dot-upload    { background: var(--upload); }
+  .dot-ai        { background: var(--ai); }
+  .dot-search    { background: var(--search); }
+  .dot-albums    { background: var(--albums); }
+  .dot-reactions { background: var(--reactions); }
+  .dot-phase5    { background: var(--phase5); }
+  .dot-stretch   { background: var(--stretch); }
+
+  .legend-dot-done { background: #4ade80; }
+  .legend-dot-todo { background: #60a5fa; }
+
+  .link-muted { color: var(--muted); }
+
+  .badge-phase1  { background: rgba(124,110,245,0.2); color: #a99ff8; }
+  .badge-phase2  { background: rgba(245,158,11,0.2);  color: #fbbf24; }
+  .badge-phase3  { background: rgba(16,185,129,0.2);  color: #34d399; }
+  .badge-phase4  { background: rgba(236,72,153,0.2);  color: #f472b6; }
+  .badge-phase5  { background: rgba(100,116,139,0.25); color: #94a3b8; }
+  .badge-stretch { background: rgba(51,65,85,0.5);    color: #94a3b8; }
+
+  .progress-fill { width: 0; }
+  .fill-phase1   { background: var(--phase1); }
+  .fill-phase2   { background: var(--phase2); }
+  .fill-phase3   { background: var(--phase3); }
+  .fill-phase4   { background: var(--phase4); }
+  .fill-phase5   { background: var(--phase5); }
+  .fill-stretch  { background: var(--stretch); }
+
+  .epic-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: #fff;
+    flex: 1;
+  }
+
+  .epic-status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .status-closed {
+    background: #1d3a1d;
+    color: #4ade80;
+  }
+
+  .status-open {
+    background: #1e2a3a;
+    color: #60a5fa;
+  }
+
+  .issue-list {
+    padding: 8px 0;
+  }
+
+  .issue {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 14px;
+    text-decoration: none;
+    color: var(--text);
+    transition: background 0.1s;
+  }
+
+  .issue:hover { background: rgba(255,255,255,0.03); }
+
+  .issue-check {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+  }
+
+  .issue-check.done {
+    background: #166534;
+    border: none;
+    color: #4ade80;
+  }
+
+  .issue-check.todo {
+    background: transparent;
+    border: 1.5px solid var(--muted);
+    color: transparent;
+  }
+
+  .issue-num {
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+    min-width: 28px;
+  }
+
+  .issue-title {
+    font-size: 12.5px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .issue.done .issue-title {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: #444;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 14px;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Share the Images — ロードマップ</h1>
+  <p>GitHub Issues から自動生成 · <a href="https://github.com/1R0U/share-the-images/issues" class="link-muted">issues を開く</a></p>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot legend-dot-done"></div> 完了</div>
+    <div class="legend-item"><div class="legend-dot legend-dot-todo"></div> 未着手</div>
+  </div>
+</header>
+
+<div class="content">
+
+  <!-- Phase 1 -->
+  <div class="phase" id="phase1">
+    <div class="phase-header" onclick="togglePhase('phase1')">
+      <span class="phase-badge badge-phase1">Phase 1</span>
+      <span class="phase-title">基盤 — 認証・ルーム・タイムライン</span>
+      <div class="phase-progress">
+        <div class="progress-bar"><div class="progress-fill fill-phase1"></div></div>
+        <span>0 / 18</span>
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="phase-body">
+
+      <!-- [A] 認証 -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/3" target="_blank">
+          <span class="epic-dot dot-auth"></span>
+          <span class="epic-title">[A] 認証 — Google OAuth + セッション管理</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/13" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#13</span>
+            <span class="issue-title">[A1] supabase.ts の初期化確認・疎通テスト</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/14" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#14</span>
+            <span class="issue-title">[A2] Google OAuth 設定 + Redirect URL 接続</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/15" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#15</span>
+            <span class="issue-title">[A3] authStore に onAuthStateChange を接続</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/16" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#16</span>
+            <span class="issue-title">[A4] セッション永続化（AsyncStorage）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/17" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#17</span>
+            <span class="issue-title">[A5] ログアウト処理の実装（profile.tsx）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/18" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#18</span>
+            <span class="issue-title">[A6] 認証ガード（未ログイン → login へリダイレクト）</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- [B] ルーム -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/4" target="_blank">
+          <span class="epic-dot dot-rooms"></span>
+          <span class="epic-title">[B] ルーム — 作成・招待・参加</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/19" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#19</span>
+            <span class="issue-title">[B1] roomStore に rooms テーブルを接続</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/20" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#20</span>
+            <span class="issue-title">[B2] ルーム一覧（list.tsx）に実データを表示</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/21" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#21</span>
+            <span class="issue-title">[B3] ルーム作成 API（create.tsx）実装</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/22" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#22</span>
+            <span class="issue-title">[B4] 招待リンク・コード発行（invite.tsx）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/23" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#23</span>
+            <span class="issue-title">[B5] 招待コードで参加（join.tsx）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/24" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#24</span>
+            <span class="issue-title">[B6] アクティブルームの永続化（再起動後も維持）</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- [C] タイムライン -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/5" target="_blank">
+          <span class="epic-dot dot-timeline"></span>
+          <span class="epic-title">[C] タイムライン — 画像グリッド + Realtime</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/25" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#25</span>
+            <span class="issue-title">[C1] posts テーブルから画像リストを取得</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/26" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#26</span>
+            <span class="issue-title">[C2] R2 の URL で画像グリッド表示</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/27" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#27</span>
+            <span class="issue-title">[C3] 無限スクロール（カーソルページネーション）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/28" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#28</span>
+            <span class="issue-title">[C4] Supabase Realtime で新着投稿をリアルタイム反映</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase" id="phase2">
+    <div class="phase-header" onclick="togglePhase('phase2')">
+      <span class="phase-badge badge-phase2">Phase 2</span>
+      <span class="phase-title">投稿 — カメラ・R2 アップロード・AI タグ</span>
+      <div class="phase-progress">
+        <div class="progress-bar"><div class="progress-fill fill-phase2"></div></div>
+        <span>0 / 10</span>
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="phase-body">
+
+      <!-- [D] カメラ投稿 -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/6" target="_blank">
+          <span class="epic-dot dot-upload"></span>
+          <span class="epic-title">[D] カメラ投稿 — 撮影・選択・R2 アップロード</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/29" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#29</span>
+            <span class="issue-title">[D1] expo-camera で撮影データを取得</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/30" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#30</span>
+            <span class="issue-title">[D2] expo-image-picker でライブラリから複数選択</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/31" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#31</span>
+            <span class="issue-title">[D3] Cloudflare R2 へアップロード（署名付き URL）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/32" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#32</span>
+            <span class="issue-title">[D4] posts テーブルにレコード挿入</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/33" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#33</span>
+            <span class="issue-title">[D5] アップロード進捗の UI 表示</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/34" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#34</span>
+            <span class="issue-title">[D6] 動画サポート（サムネイル生成 + アップロード）</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- [E] AI タグ -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/7" target="_blank">
+          <span class="epic-dot dot-ai"></span>
+          <span class="epic-title">[E] AI タグ付け — Gemini API + Edge Function</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/35" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#35</span>
+            <span class="issue-title">[E1] Edge Function 実装（Gemini API でタグ生成）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/36" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#36</span>
+            <span class="issue-title">[E2] 投稿完了後に Edge Function を自動トリガー</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/37" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#37</span>
+            <span class="issue-title">[E3] 生成タグを media_tags テーブルに保存</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/38" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#38</span>
+            <span class="issue-title">[E4] 手動タグ追加・編集 UI（media.tsx）</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase" id="phase3">
+    <div class="phase-header" onclick="togglePhase('phase3')">
+      <span class="phase-badge badge-phase3">Phase 3</span>
+      <span class="phase-title">探索 — タグ検索・月別アルバム</span>
+      <div class="phase-progress">
+        <div class="progress-bar"><div class="progress-fill fill-phase3"></div></div>
+        <span>0 / 6</span>
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="phase-body">
+
+      <!-- [F] タグ検索 -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/8" target="_blank">
+          <span class="epic-dot dot-search"></span>
+          <span class="epic-title">[F] タグ検索 — インクリメンタル検索 + グリッド表示</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/39" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#39</span>
+            <span class="issue-title">[F1] タグ一覧を Supabase から取得して表示</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/40" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#40</span>
+            <span class="issue-title">[F2] テキスト入力でタグのインクリメンタル検索</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/41" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#41</span>
+            <span class="issue-title">[F3] 検索結果の画像グリッド表示</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- [G] 月別アルバム -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/9" target="_blank">
+          <span class="epic-dot dot-albums"></span>
+          <span class="epic-title">[G] 月別アルバム — 月単位グループ化 + 一覧・詳細</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/42" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#42</span>
+            <span class="issue-title">[G1] 月別グループ化クエリ（枚数・サムネイル集計）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/43" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#43</span>
+            <span class="issue-title">[G2] アルバム一覧（albums.tsx）に実データ表示</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/44" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#44</span>
+            <span class="issue-title">[G3] 月別グリッド（room/album.tsx）に実データ表示</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Phase 4 -->
+  <div class="phase" id="phase4">
+    <div class="phase-header" onclick="togglePhase('phase4')">
+      <span class="phase-badge badge-phase4">Phase 4</span>
+      <span class="phase-title">交流 — リアクション・コメント</span>
+      <div class="phase-progress">
+        <div class="progress-bar"><div class="progress-fill fill-phase4"></div></div>
+        <span>0 / 4</span>
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="phase-body">
+
+      <!-- [H] リアクション -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/10" target="_blank">
+          <span class="epic-dot dot-reactions"></span>
+          <span class="epic-title">[H] リアクション・コメント — Realtime 対応</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/45" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#45</span>
+            <span class="issue-title">[H1] リアクション（絵文字）の保存・取得</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/46" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#46</span>
+            <span class="issue-title">[H2] コメント投稿・取得（comments テーブル接続）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/47" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#47</span>
+            <span class="issue-title">[H3] media.tsx にリアクション・コメントを組み込み</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/48" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#48</span>
+            <span class="issue-title">[H4] Realtime でリアクション・コメントをリアルタイム更新</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Phase 5 -->
+  <div class="phase" id="phase5">
+    <div class="phase-header" onclick="togglePhase('phase5')">
+      <span class="phase-badge badge-phase5">Phase 5</span>
+      <span class="phase-title">仕上げ — エラー処理・EAS Build・ストア提出</span>
+      <div class="phase-progress">
+        <div class="progress-bar"><div class="progress-fill fill-phase5"></div></div>
+        <span>0 / 4</span>
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="phase-body">
+
+      <!-- [J] 仕上げ -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/11" target="_blank">
+          <span class="epic-dot dot-phase5"></span>
+          <span class="epic-title">[J] 仕上げ・デプロイ — エラー処理統一 + EAS Build</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/49" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#49</span>
+            <span class="issue-title">[J1] エラーハンドリングの統一（toast / alert 共通化）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/50" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#50</span>
+            <span class="issue-title">[J2] ローディング状態の統一（skeleton / spinner）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/51" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#51</span>
+            <span class="issue-title">[J3] EAS Build で実機テスト（iOS + Android）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/52" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#52</span>
+            <span class="issue-title">[J4] アプリストア提出準備（スクショ・説明文・プライバシーポリシー）</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Stretch -->
+  <div class="phase" id="stretch">
+    <div class="phase-header" onclick="togglePhase('stretch')">
+      <span class="phase-badge badge-stretch">Stretch</span>
+      <span class="phase-title">拡張機能 — 通知・オフライン・プロフィール・削除</span>
+      <div class="phase-progress">
+        <div class="progress-bar"><div class="progress-fill fill-stretch"></div></div>
+        <span>0 / 6</span>
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="phase-body">
+
+      <!-- Stretch goals -->
+      <div class="epic">
+        <a class="epic-header" href="https://github.com/1R0U/share-the-images/issues/12" target="_blank">
+          <span class="epic-dot dot-stretch"></span>
+          <span class="epic-title">[Stretch] 拡張機能 — 通知・オフライン・プロフィール・削除</span>
+          <span class="epic-status status-closed">完了</span>
+        </a>
+        <div class="issue-list">
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/53" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#53</span>
+            <span class="issue-title">[I1] プッシュ通知（Expo Notifications）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/54" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#54</span>
+            <span class="issue-title">[I2] コメント・リアクションの通知</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/55" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#55</span>
+            <span class="issue-title">[X1] 動画再生の最適化（キャッシュ）</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/56" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#56</span>
+            <span class="issue-title">[X2] オフラインキャッシュ対応</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/57" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#57</span>
+            <span class="issue-title">[X3] プロフィール画像の設定</span>
+          </a>
+          <a class="issue todo" href="https://github.com/1R0U/share-the-images/issues/58" target="_blank">
+            <span class="issue-check todo"></span>
+            <span class="issue-num">#58</span>
+            <span class="issue-title">[X4] メディア削除機能</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function togglePhase(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+</script>
+</body>
+</html>
