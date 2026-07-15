@@ -1,26 +1,37 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { supabase } from '../src/lib/supabase';
 import { useAuthStore } from '../src/stores/authStore';
 
 export default function RootLayout() {
-  const { setSession, setLoading } = useAuthStore();
+  const { setSession, setProfile, setLoading, clear } = useAuthStore();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (event, session) => {
         setSession(session);
+
+        if (session?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          setProfile(data ?? null);
+        }
+
+        if (event === 'SIGNED_IN') router.replace('/(main)');
+        if (event === 'SIGNED_OUT') {
+          clear();
+          router.replace('/(auth)/login');
+        }
+        if (event === 'INITIAL_SESSION') setLoading(false);
       }
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [clear, setLoading, setProfile, setSession]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
