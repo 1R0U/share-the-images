@@ -7,7 +7,7 @@ import { supabase } from '../../src/lib/supabase';
 import { Text } from 'react-native';
 
 export default function MainLayout() {
-  const { session, isGuest } = useAuthStore();
+  const { session, isGuest, isLoading } = useAuthStore();
   const { setRooms } = useRoomStore();
 
   useEffect(() => {
@@ -21,8 +21,9 @@ export default function MainLayout() {
         const rooms = data?.flatMap((m) => m.rooms ?? []) ?? [];
         setRooms(rooms as any);
       });
-  }, [session]);
+  }, [session, setRooms]);
 
+  if (isLoading) return null;
   if (!session && !isGuest) return <Redirect href="/(auth)/login" />;
 
   return (
