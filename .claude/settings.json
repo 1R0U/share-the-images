@@ -1,5 +1,18 @@
 {
   "enabledPlugins": {
     "expo@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); cmd=$(echo \"$input\" | grep -o '\"command\"[^,}]*' | head -1); if echo \"$cmd\" | grep -q 'gh pr create'; then echo 'PR作成を検知しました。CodeRabbitのレート制限に備え、/code-review でセルフレビューしてください。' >&2; fi"
+          }
+        ]
+      }
+    ]
   }
 }
