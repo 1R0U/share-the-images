@@ -14,6 +14,8 @@ interface RoomState {
   fetchRooms: (userId: string) => Promise<void>;
 }
 
+let fetchGeneration = 0;
+
 export const useRoomStore = create<RoomState>((set) => ({
   rooms: [],
   currentRoomId: null,
@@ -22,13 +24,21 @@ export const useRoomStore = create<RoomState>((set) => ({
   setCurrentRoom: (currentRoomId) => set({ currentRoomId }),
   addRoom: (room) => set((s) => ({ rooms: [...s.rooms, room] })),
   fetchRooms: async (userId) => {
+    const generation = ++fetchGeneration;
     set({ loading: true });
-    const { data } = await supabase
-      .from('room_members')
-      .select('rooms(*)')
-      .eq('user_id', userId);
-    const rooms = (data ?? []).flatMap((m) => m.rooms ?? []) as Room[];
-    set({ rooms, currentRoomId: rooms[0]?.id ?? null, loading: false });
+    try {
+      const { data, error } = await supabase
+        .from('room_members')
+        .select('rooms(*)')
+        .eq('user_id', userId);
+      if (error) throw error;
+      if (generation !== fetchGeneration) return;
+      const rooms = (data ?? []).flatMap((m) => m.rooms ?? []) as Room[];
+      set({ rooms, currentRoomId: rooms[0]?.id ?? null, loading: false });
+    } catch {
+      if (generation !== fetchGeneration) return;
+      set({ loading: false });
+    }
   },
 }));
 
@@ -37,6 +47,7 @@ supabase.auth.onAuthStateChange((event, session) => {
     useRoomStore.getState().fetchRooms(session.user.id);
   }
   if (event === 'SIGNED_OUT') {
+    fetchGeneration++;
     useRoomStore.setState({ rooms: [], currentRoomId: null, loading: false });
   }
 });
