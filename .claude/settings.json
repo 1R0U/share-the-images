@@ -1,5 +1,18 @@
 {
   "enabledPlugins": {
     "expo@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); match=$(echo \"$input\" | node -e 'let d=\"\";process.stdin.on(\"data\",c=>d+=c);process.stdin.on(\"end\",()=>{try{var j=JSON.parse(d);var cmd=(j.tool_input&&j.tool_input.command)||\"\";process.stdout.write(/(^|[;&|]+\\s*)gh\\s+pr\\s+create(\\s|$)/.test(cmd)?\"1\":\"0\")}catch(e){process.stdout.write(\"0\")}});'); if [ \"$match\" = \"1\" ]; then echo 'PR作成を検知しました。CodeRabbitのレート制限に備え、/code-review でセルフレビューしてください。' >&2; fi"
+          }
+        ]
+      }
+    ]
   }
 }
