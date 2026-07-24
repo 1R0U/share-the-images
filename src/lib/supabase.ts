@@ -1,4 +1,5 @@
 import 'react-native-url-polyfill/auto';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database';
@@ -17,6 +18,18 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: false,
   },
+});
+
+/**
+ * バックグラウンド中はトークン自動リフレッシュを止め、フォアグラウンド復帰時に再開する。
+ * (Supabase 公式の React Native 連携パターン)
+ */
+AppState.addEventListener('change', (state) => {
+  if (state === 'active') {
+    supabase.auth.startAutoRefresh();
+  } else {
+    supabase.auth.stopAutoRefresh();
+  }
 });
 
 /** 開発・デバッグ用。Supabase プロジェクトに実際に到達できるか確認する。 */
