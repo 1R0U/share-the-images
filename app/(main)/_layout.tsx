@@ -1,27 +1,10 @@
-import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '../../src/stores/authStore';
-import { useRoomStore } from '../../src/stores/roomStore';
-import { supabase } from '../../src/lib/supabase';
 import { Text } from 'react-native';
 
 export default function MainLayout() {
   const { session, isGuest, isLoading } = useAuthStore();
-  const { setRooms } = useRoomStore();
-
-  useEffect(() => {
-    if (!session) return;
-
-    supabase
-      .from('room_members')
-      .select('room_id, rooms(*)')
-      .eq('user_id', session.user.id)
-      .then(({ data }) => {
-        const rooms = data?.flatMap((m) => m.rooms ?? []) ?? [];
-        setRooms(rooms as any);
-      });
-  }, [session, setRooms]);
 
   if (isLoading) return null;
   if (!session && !isGuest) return <Redirect href="/(auth)/login" />;
