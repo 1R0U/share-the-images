@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -5,12 +6,44 @@ import {
   SafeAreaView,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useRoomStore } from '../../../src/stores/roomStore';
+import { supabase } from '../../../src/lib/supabase';
 
 export default function RoomListScreen() {
-  const { rooms, currentRoomId, setCurrentRoom } = useRoomStore();
+  const { rooms, currentRoomId, loading, setCurrentRoom } = useRoomStore();
+  const [memberCounts, setMemberCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (rooms.length === 0) {
+      setMemberCounts({});
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from('room_members')
+      .select('room_id')
+      .in('room_id', rooms.map((r) => r.id))
+      .then(({ data }) => {
+        if (cancelled) return;
+        const counts: Record<string, number> = {};
+        for (const m of data ?? []) {
+          counts[m.room_id] = (counts[m.room_id] ?? 0) + 1;
+        }
+        setMemberCounts(counts);
+      });
+    return () => { cancelled = true; };
+  }, [rooms]);
+
+  if (loading && rooms.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator style={styles.spinner} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -27,7 +60,10 @@ export default function RoomListScreen() {
             style={[styles.row, item.id === currentRoomId && styles.activeRow]}
             onPress={() => { setCurrentRoom(item.id); router.back(); }}
           >
-            <Text style={styles.roomName}>{item.name}</Text>
+            <View>
+              <Text style={styles.roomName}>{item.name}</Text>
+              <Text style={styles.memberCount}>{memberCounts[item.id] ?? 0}人</Text>
+            </View>
             {item.id === currentRoomId && <Text style={styles.check}>✓</Text>}
           </TouchableOpacity>
         )}
@@ -56,7 +92,9 @@ const styles = StyleSheet.create({
   },
   activeRow: { backgroundColor: '#f8f8f8' },
   roomName: { fontSize: 16 },
+  memberCount: { fontSize: 13, color: '#888', marginTop: 2 },
   check: { color: '#4285F4', fontWeight: '700', fontSize: 18 },
+  spinner: { flex: 1, justifyContent: 'center' },
   joinBtn: { margin: 16, padding: 14, borderWidth: 1, borderColor: '#ddd', borderRadius: 12, alignItems: 'center' },
   joinBtnText: { color: '#555', fontWeight: '500', fontSize: 15 },
 });
