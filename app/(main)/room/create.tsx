@@ -32,7 +32,11 @@ export default function CreateRoomScreen() {
 
       if (roomError) throw roomError;
 
-      await supabase.from('room_members').insert({ room_id: room.id, user_id: session.user.id, role: 'owner' });
+      const { error: memberError } = await supabase
+        .from('room_members')
+        .insert({ room_id: room.id, user_id: session.user.id, role: 'owner' });
+
+      if (memberError) throw memberError;
 
       addRoom(room);
       setCurrentRoom(room.id);
