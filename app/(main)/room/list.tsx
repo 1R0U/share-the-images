@@ -26,8 +26,8 @@ export default function RoomListScreen() {
       .from('room_members')
       .select('room_id')
       .in('room_id', rooms.map((r) => r.id))
-      .then(({ data }) => {
-        if (cancelled) return;
+      .then(({ data, error }) => {
+        if (cancelled || error) return;
         const counts: Record<string, number> = {};
         for (const m of data ?? []) {
           counts[m.room_id] = (counts[m.room_id] ?? 0) + 1;
@@ -62,7 +62,9 @@ export default function RoomListScreen() {
           >
             <View>
               <Text style={styles.roomName}>{item.name}</Text>
-              <Text style={styles.memberCount}>{memberCounts[item.id] ?? 0}人</Text>
+              <Text style={styles.memberCount}>
+                {item.id in memberCounts ? `${memberCounts[item.id]}人` : ''}
+              </Text>
             </View>
             {item.id === currentRoomId && <Text style={styles.check}>✓</Text>}
           </TouchableOpacity>
