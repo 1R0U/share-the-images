@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ export default function InviteScreen() {
   const [code, setCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const copiedResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentRoom = rooms.find((r) => r.id === currentRoomId);
   const inviteUrl = code ? `sharetheimages://join?code=${code}` : null;
@@ -26,6 +27,12 @@ export default function InviteScreen() {
   useEffect(() => {
     generateInvite();
   }, [currentRoomId]);
+
+  useEffect(() => {
+    return () => {
+      if (copiedResetTimer.current) clearTimeout(copiedResetTimer.current);
+    };
+  }, []);
 
   const generateInvite = async () => {
     if (!session || !currentRoomId) return;
@@ -57,7 +64,8 @@ export default function InviteScreen() {
     if (!code) return;
     await Clipboard.setStringAsync(code);
     setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    if (copiedResetTimer.current) clearTimeout(copiedResetTimer.current);
+    copiedResetTimer.current = setTimeout(() => setCopied(false), 1500);
   };
 
   return (
