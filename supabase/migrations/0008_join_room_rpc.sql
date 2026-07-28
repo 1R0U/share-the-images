@@ -40,6 +40,16 @@ begin
     raise exception '無効な招待コードです';
   end if;
 
+  -- Already a member: return the room as-is without re-validating
+  -- expiry/max_uses, since no new slot is being consumed.
+  if exists (
+    select 1 from room_members
+    where room_id = target_invite.room_id and user_id = auth.uid()
+  ) then
+    select * into joined_room from rooms where id = target_invite.room_id;
+    return joined_room;
+  end if;
+
   if target_invite.expires_at is not null and target_invite.expires_at < now() then
     raise exception 'この招待リンクは期限切れです';
   end if;
