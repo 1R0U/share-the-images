@@ -283,6 +283,10 @@ export interface Database {
         Args: { room_name: string; room_description?: string | null };
         Returns: Database['public']['Tables']['rooms']['Row'];
       };
+      join_room_by_code: {
+        Args: { invite_code: string };
+        Returns: Database['public']['Tables']['rooms']['Row'];
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
