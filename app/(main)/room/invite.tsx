@@ -8,6 +8,7 @@ import {
   Share,
   Alert,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { supabase } from '../../../src/lib/supabase';
 import { useAuthStore } from '../../../src/stores/authStore';
 import { useRoomStore } from '../../../src/stores/roomStore';
@@ -17,6 +18,7 @@ export default function InviteScreen() {
   const { currentRoomId, rooms } = useRoomStore();
   const [code, setCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   const currentRoom = rooms.find((r) => r.id === currentRoomId);
   const inviteUrl = code ? `sharetheimages://join?code=${code}` : null;
@@ -39,13 +41,23 @@ export default function InviteScreen() {
       .single();
 
     if (error) Alert.alert('エラー', error.message);
-    else setCode(data.code);
+    else {
+      setCode(data.code);
+      setCopied(false);
+    }
     setLoading(false);
   };
 
   const shareUrl = async () => {
     if (!inviteUrl) return;
     await Share.share({ message: `「${currentRoom?.name}」に招待します！\n${inviteUrl}` });
+  };
+
+  const copyCode = async () => {
+    if (!code) return;
+    await Clipboard.setStringAsync(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   return (
@@ -56,16 +68,20 @@ export default function InviteScreen() {
       {loading ? (
         <Text style={styles.loading}>生成中...</Text>
       ) : (
-        <View style={styles.codeBox}>
+        <TouchableOpacity style={styles.codeBox} onPress={copyCode} activeOpacity={0.7}>
           <Text style={styles.codeLabel}>招待コード</Text>
           <Text style={styles.code}>{code}</Text>
-          <Text style={styles.expiry}>7日間有効</Text>
-        </View>
+          <Text style={styles.expiry}>{copied ? 'コピーしました' : '7日間有効・タップでコピー'}</Text>
+        </TouchableOpacity>
       )}
 
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.btn} onPress={shareUrl} disabled={loading}>
-          <Text style={styles.btnText}>🔗 URLを共有</Text>
+        <TouchableOpacity style={styles.btn} onPress={copyCode} disabled={loading}>
+          <Text style={styles.btnText}>{copied ? '✓ コピーしました' : '📋 コードをコピー'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.btn, styles.btnSecondary]} onPress={shareUrl} disabled={loading}>
+          <Text style={[styles.btnText, styles.btnTextSecondary]}>🔗 URLを共有</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.btn, styles.btnSecondary]} onPress={generateInvite} disabled={loading}>
