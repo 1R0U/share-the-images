@@ -24,15 +24,10 @@ export default function CreateRoomScreen() {
     if (!session || !name.trim()) return;
     setCreating(true);
     try {
-      const { data: room, error: roomError } = await supabase
-        .from('rooms')
-        .insert({ name: name.trim(), description: description.trim() || null, owner_id: session.user.id })
-        .select()
-        .single();
+      const { data: room, error: createError } = await supabase
+        .rpc('create_room', { room_name: name.trim(), room_description: description.trim() || null });
 
-      if (roomError) throw roomError;
-
-      await supabase.from('room_members').insert({ room_id: room.id, user_id: session.user.id, role: 'owner' });
+      if (createError) throw createError;
 
       addRoom(room);
       setCurrentRoom(room.id);

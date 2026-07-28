@@ -278,7 +278,12 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      create_room: {
+        Args: { room_name: string; room_description?: string | null };
+        Returns: Database['public']['Tables']['rooms']['Row'];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
