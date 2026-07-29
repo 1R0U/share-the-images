@@ -19,11 +19,16 @@ interface RoomState {
 
 let fetchGeneration = 0;
 
+let persistQueue: Promise<void> = Promise.resolve();
+
 const persistActiveRoomId = (roomId: string | null) => {
-  const write = roomId
-    ? AsyncStorage.setItem(ACTIVE_ROOM_STORAGE_KEY, roomId)
-    : AsyncStorage.removeItem(ACTIVE_ROOM_STORAGE_KEY);
-  write.catch(() => {});
+  persistQueue = persistQueue
+    .then(() =>
+      roomId
+        ? AsyncStorage.setItem(ACTIVE_ROOM_STORAGE_KEY, roomId)
+        : AsyncStorage.removeItem(ACTIVE_ROOM_STORAGE_KEY)
+    )
+    .catch(() => {});
 };
 
 export const useRoomStore = create<RoomState>((set) => ({
@@ -40,6 +45,7 @@ export const useRoomStore = create<RoomState>((set) => ({
     const generation = ++fetchGeneration;
     set({ loading: true });
     try {
+      await persistQueue;
       const [{ data, error }, savedRoomId] = await Promise.all([
         supabase.from('room_members').select('rooms(*)').eq('user_id', userId),
         AsyncStorage.getItem(ACTIVE_ROOM_STORAGE_KEY).catch(() => null),
