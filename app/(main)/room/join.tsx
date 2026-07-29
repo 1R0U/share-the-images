@@ -24,26 +24,13 @@ export default function JoinScreen() {
     if (!session || !code.trim()) return;
     setJoining(true);
     try {
-      const { data: invite, error: inviteErr } = await supabase
-        .from('room_invites')
-        .select('id, room_id, expires_at, max_uses, use_count, rooms(*)')
-        .eq('code', code.trim().toUpperCase())
-        .single();
+      const { data: room, error } = await supabase
+        .rpc('join_room_by_code', { invite_code: code.trim() });
 
-      if (inviteErr || !invite) throw new Error('無効な招待コードです');
-      if (invite.expires_at && new Date(invite.expires_at) < new Date()) throw new Error('この招待リンクは期限切れです');
-      if (invite.max_uses && invite.use_count >= invite.max_uses) throw new Error('このリンクは上限に達しました');
+      if (error) throw error;
 
-      const { error: memberErr } = await supabase
-        .from('room_members')
-        .upsert({ room_id: invite.room_id, user_id: session.user.id, role: 'member' });
-
-      if (memberErr) throw memberErr;
-
-      await supabase.from('room_invites').update({ use_count: invite.use_count + 1 }).eq('id', invite.id);
-
-      const room = Array.isArray(invite.rooms) ? invite.rooms[0] : invite.rooms;
-      if (room) { addRoom(room as any); setCurrentRoom(room.id); }
+      addRoom(room);
+      setCurrentRoom(room.id);
 
       router.back(); router.back();
     } catch (e: any) {
