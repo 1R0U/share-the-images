@@ -94,6 +94,7 @@ export default function TimelineScreen() {
               <Image
                 source={{ uri: item.r2_url }}
                 style={{ width: ITEM_SIZE, height: ITEM_SIZE, margin: GAP / 2 }}
+                allowDownscaling
                 contentFit="cover"
                 cachePolicy="memory-disk"
                 recyclingKey={item.id}
