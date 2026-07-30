@@ -52,6 +52,7 @@ export default function TimelineScreen() {
       .select('*')
       .eq('room_id', currentRoomId)
       .order('uploaded_at', { ascending: false })
+      .order('id', { ascending: false })
       .range(0, PAGE_SIZE - 1);
     if (generation !== fetchGenRef.current) return;
     if (error) {
@@ -76,15 +77,13 @@ export default function TimelineScreen() {
       .select('*')
       .eq('room_id', currentRoomId)
       .order('uploaded_at', { ascending: false })
+      .order('id', { ascending: false })
       .range(from, from + PAGE_SIZE - 1);
     if (generation === fetchGenRef.current) {
       if (!error) {
         const page = data ?? [];
-        setMedia((prev) => {
-          const next = [...prev, ...page];
-          mediaLengthRef.current = next.length;
-          return next;
-        });
+        mediaLengthRef.current = from + page.length;
+        setMedia((prev) => [...prev, ...page]);
         setHasMore(page.length === PAGE_SIZE);
       }
     }
