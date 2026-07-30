@@ -203,6 +203,7 @@ export default function CameraScreen() {
             )
           }
           columnWrapperStyle={styles.previewRow}
+          contentContainerStyle={styles.previewList}
         />
         <View style={styles.previewActions}>
           <TouchableOpacity style={[styles.btn, styles.btnSecondary, styles.previewBtn]} onPress={cancelPreview}>
@@ -307,8 +308,9 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
     backgroundColor: 'rgba(255,255,255,0.3)',
   },
+  previewList: { gap: PREVIEW_GAP },
   previewRow: { gap: PREVIEW_GAP },
-  previewThumb: { width: PREVIEW_ITEM_SIZE, height: PREVIEW_ITEM_SIZE, margin: PREVIEW_GAP / 2 },
+  previewThumb: { width: PREVIEW_ITEM_SIZE, height: PREVIEW_ITEM_SIZE },
   videoThumb: { backgroundColor: '#222', justifyContent: 'center', alignItems: 'center' },
   videoThumbIcon: { color: '#fff', fontSize: 20 },
   previewActions: {
