@@ -32,14 +32,12 @@ export default function TimelineScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const fetchGenRef = useRef(0);
-  const mediaLengthRef = useRef(0);
   const loadingMoreRef = useRef(false);
 
   const fetchMedia = useCallback(async () => {
     const generation = ++fetchGenRef.current;
     if (!currentRoomId) {
       setMedia([]);
-      mediaLengthRef.current = 0;
       setHasMore(true);
       setError(null);
       setLoading(false);
@@ -60,7 +58,6 @@ export default function TimelineScreen() {
     } else {
       const page = data ?? [];
       setMedia(page);
-      mediaLengthRef.current = page.length;
       setHasMore(page.length === PAGE_SIZE);
     }
     setLoading(false);
@@ -71,7 +68,7 @@ export default function TimelineScreen() {
     const generation = fetchGenRef.current;
     loadingMoreRef.current = true;
     setLoadingMore(true);
-    const from = mediaLengthRef.current;
+    const from = media.length;
     const { data, error } = await supabase
       .from('media')
       .select('*')
@@ -79,19 +76,38 @@ export default function TimelineScreen() {
       .order('uploaded_at', { ascending: false })
       .order('id', { ascending: false })
       .range(from, from + PAGE_SIZE - 1);
-    if (generation === fetchGenRef.current) {
-      if (!error) {
-        const page = data ?? [];
-        mediaLengthRef.current = from + page.length;
-        setMedia((prev) => [...prev, ...page]);
-        setHasMore(page.length === PAGE_SIZE);
-      }
+    if (generation === fetchGenRef.current && !error) {
+      const page = data ?? [];
+      setMedia((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+        return [...prev, ...page.filter((m) => !existingIds.has(m.id))];
+      });
+      setHasMore(page.length === PAGE_SIZE);
     }
     loadingMoreRef.current = false;
     setLoadingMore(false);
-  }, [currentRoomId, loading, hasMore]);
+  }, [currentRoomId, loading, hasMore, media.length]);
 
   useEffect(() => { fetchMedia(); }, [fetchMedia]);
+
+  useEffect(() => {
+    if (!currentRoomId) return;
+    const channel = supabase
+      .channel(`media-room-${currentRoomId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'media', filter: `room_id=eq.${currentRoomId}` },
+        (payload) => {
+          const newItem = payload.new as Media;
+          setMedia((prev) => (prev.some((m) => m.id === newItem.id) ? prev : [newItem, ...prev]));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentRoomId]);
 
   const currentRoom = rooms.find((r) => r.id === currentRoomId);
 
