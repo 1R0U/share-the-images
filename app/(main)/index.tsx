@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -27,17 +27,23 @@ export default function TimelineScreen() {
   const { rooms, currentRoomId, setCurrentRoom } = useRoomStore();
   const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fetchGenRef = useRef(0);
 
   const fetchMedia = useCallback(async () => {
     if (!currentRoomId) return;
+    const generation = ++fetchGenRef.current;
     setLoading(true);
-    const { data } = await supabase
+    setError(null);
+    const { data, error } = await supabase
       .from('media')
       .select('*')
       .eq('room_id', currentRoomId)
       .order('uploaded_at', { ascending: false })
       .limit(60);
-    setMedia(data ?? []);
+    if (generation !== fetchGenRef.current) return;
+    if (error) setError(error.message);
+    else setMedia(data ?? []);
     setLoading(false);
   }, [currentRoomId]);
 
@@ -59,6 +65,13 @@ export default function TimelineScreen() {
 
       {loading ? (
         <ActivityIndicator style={{ flex: 1 }} />
+      ) : error ? (
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>読み込みに失敗しました</Text>
+          <TouchableOpacity onPress={fetchMedia}>
+            <Text style={styles.inviteBtn}>再試行</Text>
+          </TouchableOpacity>
+        </View>
       ) : media.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>まだ写真がありません</Text>
