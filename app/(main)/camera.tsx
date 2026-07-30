@@ -21,6 +21,7 @@ export default function CameraScreen() {
   const currentRoomId = useRoomStore((s) => s.currentRoomId);
   const [uploading, setUploading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const capturingRef = useRef(false);
@@ -75,15 +76,24 @@ export default function CameraScreen() {
     setShowCamera(true);
   };
 
+  const closeCamera = () => {
+    setShowCamera(false);
+    setCameraReady(false);
+  };
+
   const takePicture = async () => {
-    if (capturingRef.current) return;
+    if (capturingRef.current || !cameraReady) return;
     capturingRef.current = true;
     try {
       const photo = await cameraRef.current?.takePictureAsync();
-      setShowCamera(false);
       if (photo?.uri) {
+        closeCamera();
         await uploadAssets([{ uri: photo.uri, type: 'image' }]);
+      } else {
+        Alert.alert('エラー', '撮影に失敗しました');
       }
+    } catch (e: any) {
+      Alert.alert('エラー', e.message ?? '撮影に失敗しました');
     } finally {
       capturingRef.current = false;
     }
@@ -115,12 +125,28 @@ export default function CameraScreen() {
   if (showCamera) {
     return (
       <View style={styles.container}>
-        <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing="back"
+          onCameraReady={() => setCameraReady(true)}
+        />
         <SafeAreaView style={styles.cameraOverlay}>
-          <TouchableOpacity style={styles.closeBtn} onPress={() => setShowCamera(false)}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="カメラを閉じる"
+            style={styles.closeBtn}
+            onPress={closeCamera}
+          >
             <Text style={styles.closeBtnText}>✕</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.shutterBtn} onPress={takePicture} />
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="写真を撮影"
+            style={styles.shutterBtn}
+            onPress={takePicture}
+            disabled={!cameraReady}
+          />
         </SafeAreaView>
       </View>
     );
