@@ -6,10 +6,10 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Dimensions,
-  Image,
   ActivityIndicator,
   FlatList,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -94,6 +94,9 @@ export default function TimelineScreen() {
               <Image
                 source={{ uri: item.r2_url }}
                 style={{ width: ITEM_SIZE, height: ITEM_SIZE, margin: GAP / 2 }}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                recyclingKey={item.id}
               />
             </TouchableOpacity>
           )}
