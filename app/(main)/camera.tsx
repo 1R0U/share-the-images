@@ -7,7 +7,9 @@ import {
   SafeAreaView,
   Alert,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../src/lib/supabase';
@@ -23,8 +25,11 @@ export default function CameraScreen() {
   const [showCamera, setShowCamera] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
+  const [libraryPermission, requestLibraryPermission] = ImagePicker.useMediaLibraryPermissions();
+  const [previewAssets, setPreviewAssets] = useState<ImagePicker.ImagePickerAsset[] | null>(null);
   const cameraRef = useRef<CameraView>(null);
   const capturingRef = useRef(false);
+  const confirmingRef = useRef(false);
 
   const uploadAssets = async (assets: CapturedAsset[]) => {
     if (!session || !currentRoomId) {
@@ -104,13 +109,34 @@ export default function CameraScreen() {
       Alert.alert('ルームを選択してください');
       return;
     }
+    if (!libraryPermission?.granted) {
+      const result = await requestLibraryPermission();
+      if (!result.granted) {
+        Alert.alert('フォトライブラリへのアクセスが許可されていません');
+        return;
+      }
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images', 'videos'],
       allowsMultipleSelection: true,
       quality: 0.9,
     });
     if (result.canceled) return;
-    await uploadAssets(result.assets.map((a) => ({ uri: a.uri, type: a.type })));
+    setPreviewAssets(result.assets);
+  };
+
+  const cancelPreview = () => setPreviewAssets(null);
+
+  const confirmUpload = async () => {
+    if (!previewAssets || confirmingRef.current) return;
+    confirmingRef.current = true;
+    const assets = previewAssets;
+    setPreviewAssets(null);
+    try {
+      await uploadAssets(assets.map((a) => ({ uri: a.uri, type: a.type })));
+    } finally {
+      confirmingRef.current = false;
+    }
   };
 
   if (uploading) {
@@ -118,6 +144,36 @@ export default function CameraScreen() {
       <SafeAreaView style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" />
         <Text style={styles.hint}>アップロード中...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (previewAssets) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>{previewAssets.length}件を選択中</Text>
+        <FlatList
+          data={previewAssets}
+          keyExtractor={(item) => item.assetId ?? item.uri}
+          numColumns={3}
+          renderItem={({ item }) => (
+            <Image
+              source={{ uri: item.uri }}
+              style={styles.previewThumb}
+              allowDownscaling
+              contentFit="cover"
+            />
+          )}
+          columnWrapperStyle={styles.previewRow}
+        />
+        <View style={styles.previewActions}>
+          <TouchableOpacity style={[styles.btn, styles.btnSecondary, styles.previewBtn]} onPress={cancelPreview}>
+            <Text style={[styles.btnText, styles.btnTextSecondary]}>キャンセル</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btn, styles.previewBtn]} onPress={confirmUpload}>
+            <Text style={styles.btnText}>投稿する</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
@@ -213,4 +269,12 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
     backgroundColor: 'rgba(255,255,255,0.3)',
   },
+  previewRow: { gap: 2 },
+  previewThumb: { flex: 1, aspectRatio: 1, margin: 1 },
+  previewActions: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 16,
+  },
+  previewBtn: { flex: 1, width: undefined },
 });
