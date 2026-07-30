@@ -31,8 +31,13 @@ export default function TimelineScreen() {
   const fetchGenRef = useRef(0);
 
   const fetchMedia = useCallback(async () => {
-    if (!currentRoomId) return;
     const generation = ++fetchGenRef.current;
+    if (!currentRoomId) {
+      setMedia([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     const { data, error } = await supabase
