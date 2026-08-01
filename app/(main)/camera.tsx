@@ -45,22 +45,26 @@ export default function CameraScreen() {
   const uploadOne = async (asset: CapturedAsset) => {
     if (!session || !currentRoomId) throw new Error('ルームを選択してください');
     const ext = asset.uri.split('.').pop() ?? 'jpg';
-    const key = `${currentRoomId}/${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-    const formData = new FormData();
-    formData.append('file', {
-      uri: asset.uri,
-      name: `upload.${ext}`,
-      type: isVideoAsset(asset) ? `video/${ext}` : `image/${ext}`,
-    } as any);
-
-    // Upload via Supabase Edge Function (which then puts to R2)
-    const { error } = await supabase.functions.invoke('upload-media', {
-      body: formData,
-      headers: { 'x-room-id': currentRoomId, 'x-r2-key': key },
+    // 1. Ask the Edge Function for a signed R2 PUT URL (also verifies the
+    //    caller is a member of the room before issuing one).
+    const { data, error: signError } = await supabase.functions.invoke('get-upload-url', {
+      body: { room_id: currentRoomId, ext },
     });
+    if (signError) throw signError;
 
-    if (error) throw error;
+    const { uploadUrl, contentType } = data as { uploadUrl: string; publicUrl: string; contentType: string };
+
+    // 2. Upload the file bytes directly to R2 with that URL.
+    const fileRes = await fetch(asset.uri);
+    const blob = await fileRes.blob();
+
+    const putRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: blob,
+      headers: { 'Content-Type': contentType },
+    });
+    if (!putRes.ok) throw new Error('アップロードに失敗しました');
   };
 
   const uploadSingle = async (asset: CapturedAsset) => {
@@ -148,16 +152,20 @@ export default function CameraScreen() {
     }
     confirmingRef.current = true;
     setUploading(true);
-    const failed: ImagePicker.ImagePickerAsset[] = [];
-    let firstErrorMessage: string | null = null;
-    for (const asset of previewAssets) {
-      try {
-        await uploadOne({ uri: asset.uri, type: asset.type });
-      } catch (e: any) {
-        failed.push(asset);
-        firstErrorMessage = firstErrorMessage ?? e.message;
-      }
-    }
+    // Upload files in parallel; Promise.allSettled (rather than Promise.all)
+    // so a single failure doesn't abort the others and we can tell exactly
+    // which assets need to be retried.
+    const results = await Promise.allSettled(
+      previewAssets.map((asset) => uploadOne({ uri: asset.uri, type: asset.type }))
+    );
+    const failed = previewAssets.filter((_, i) => results[i].status === 'rejected');
+    const firstRejection = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+    const firstErrorMessage =
+      firstRejection && firstRejection.reason instanceof Error
+        ? firstRejection.reason.message
+        : firstRejection
+          ? String(firstRejection.reason)
+          : null;
     setUploading(false);
     confirmingRef.current = false;
     if (failed.length === 0) {
